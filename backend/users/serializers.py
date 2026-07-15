@@ -6,12 +6,11 @@ User = get_user_model()
 
 class ProfileSerializer(serializers.ModelSerializer):
     avatar_url = serializers.SerializerMethodField()
-    badges = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
-        fields = ['bio', 'home_city', 'travel_preference', 'loyalty_points', 'avatar', 'avatar_url', 'badges', 'created_at', 'updated_at']
-        read_only_fields = ['loyalty_points', 'created_at', 'updated_at']
+        fields = ['bio', 'avatar', 'avatar_url', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
 
     def get_avatar_url(self, obj):
         if obj.avatar:
@@ -20,9 +19,6 @@ class ProfileSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.avatar.url)
             return obj.avatar.url
         return None
-
-    def get_badges(self, obj):
-        return obj.get_earned_badges()
 
 
 

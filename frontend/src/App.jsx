@@ -5,6 +5,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import './index.css';
 
 import { AuthProvider } from './context/AuthContext';
+import { CurrencyProvider } from './context/CurrencyContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -19,69 +20,67 @@ import Profile from './pages/Profile';
 import TripPlanner from './pages/TripPlanner';
 import TripDetails from './pages/TripDetails';
 import SharedTripView from './pages/SharedTripView';
-import CommunityFeed from './pages/CommunityFeed';
-import Leaderboard from './pages/Leaderboard';
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="d-flex flex-column min-vh-100 glow-wrapper">
-          <div className="glow-ball-primary"></div>
-          <div className="glow-ball-secondary"></div>
-          <Navbar />
-          <main className="flex-grow-1">
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/share/:shareToken" element={<SharedTripView />} />
-              <Route path="/feed" element={<CommunityFeed />} />
-              <Route path="/leaderboard" element={<Leaderboard />} />
+    <CurrencyProvider>
+      <AuthProvider>
+          <Router>
+            <div className="d-flex flex-column min-vh-100 glow-wrapper">
+              <div className="glow-ball-primary"></div>
+              <div className="glow-ball-secondary"></div>
+              <Navbar />
+            <main className="flex-grow-1">
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/share/:shareToken" element={<SharedTripView />} />
 
-              {/* Protected Routes */}
-              <Route 
-                path="/dashboard" 
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/plan-trip" 
-                element={
-                  <ProtectedRoute>
-                    <TripPlanner />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/trips/:id" 
-                element={
-                  <ProtectedRoute>
-                    <TripDetails />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/profile" 
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                } 
-              />
+                {/* Protected Routes */}
+                <Route 
+                  path="/dashboard" 
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/plan-trip" 
+                  element={
+                    <ProtectedRoute>
+                      <TripPlanner />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/trips/:id" 
+                  element={
+                    <ProtectedRoute>
+                      <TripDetails />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } 
+                />
 
-              {/* Fallback to Home */}
-              <Route path="*" element={<Home />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
-      </Router>
-    </AuthProvider>
+                {/* Fallback to Home */}
+                <Route path="*" element={<Home />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </Router>
+      </AuthProvider>
+     </CurrencyProvider>
   );
 }
 

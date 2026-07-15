@@ -2,26 +2,34 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.contrib.auth import get_user_model
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import get_user_model, authenticate
+from rest_framework.authtoken.models import Token
 
 from .serializers import UserSerializer, UserRegisterSerializer, ProfileSerializer
 
 User = get_user_model()
 
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    def validate(self, attrs):
-        data = super().validate(attrs)
-        # Append detailed user info directly to response on login
-        user_serializer = UserSerializer(self.user, context=self.context)
-        data['user'] = user_serializer.data
-        return data
 
+class CustomObtainAuthToken(APIView):
+    permission_classes = [AllowAny]
 
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
+    def post(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        password = request.data.get('password')
+        
+        if not email or not password:
+            return Response({"detail": "Both email and password are required."}, status=status.HTTP_400_BAD_REQUEST)
+            
+        user = authenticate(request, username=email, password=password)
+        if not user:
+            return Response({"detail": "Invalid email or password"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        token, created = Token.objects.get_or_create(user=user)
+        user_serializer = UserSerializer(user, context={'request': request})
+        return Response({
+            "token": token.key,
+            "user": user_serializer.data
+        }, status=status.HTTP_200_OK)
 
 
 class RegisterView(APIView):
@@ -72,44 +80,10 @@ class LogoutView(APIView):
 
     def post(self, request):
         try:
-            refresh_token = request.data.get("refresh")
-            if not refresh_token:
-                return Response({"detail": "Refresh token is required"}, status=status.HTTP_400_BAD_REQUEST)
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-            return Response({"detail": "Logged out successfully"}, status=status.HTTP_205_RESET_CONTENT)
+            if hasattr(request, 'auth') and request.auth:
+                request.auth.delete()
+            return Response({"detail": "Logged out successfully"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-
-class LeaderboardView(APIView):
-    """
-    Public leaderboard view ranking users by accumulated loyalty points.
-    """
-    permission_classes = [AllowAny]
-
-    def get(self, request):
-        from .models import Profile
-        from django.db.models import Count
-        
-        profiles = Profile.objects.select_related('user').annotate(
-            trips_count=Count('user__trips')
-        ).order_by('-loyalty_points')[:50]
-        
-        leaderboard_data = []
-        for idx, profile in enumerate(profiles):
-            avatar_url = None
-            if profile.avatar:
-                avatar_url = request.build_absolute_uri(profile.avatar.url)
-                
-            leaderboard_data.append({
-                "rank": idx + 1,
-                "username": profile.user.username,
-                "loyalty_points": profile.loyalty_points,
-                "avatar_url": avatar_url,
-                "home_city": profile.home_city,
-                "trips_count": profile.trips_count
-            })
-            
-        return Response(leaderboard_data, status=status.HTTP_200_OK)
 

@@ -25,8 +25,8 @@ const Footer = () => {
             <h6 className="text-white mb-3">Links</h6>
             <ul className="list-unstyled mb-0">
               <li className="mb-2"><Link to="/" className="text-white-50 text-decoration-none hover-white">Home</Link></li>
-              <li className="mb-2"><a href="#features" className="text-white-50 text-decoration-none hover-white">Features</a></li>
-              <li className="mb-2"><a href="#testimonials" className="text-white-50 text-decoration-none hover-white">Reviews</a></li>
+              <li className="mb-2"><Link to="/#features" className="text-white-50 text-decoration-none hover-white">Features</Link></li>
+              <li className="mb-2"><Link to="/#testimonials" className="text-white-50 text-decoration-none hover-white">Reviews</Link></li>
               <li><Link to="/register" className="text-white-50 text-decoration-none hover-white">Sign Up</Link></li>
             </ul>
           </div>

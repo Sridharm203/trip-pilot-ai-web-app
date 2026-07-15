@@ -20,7 +20,6 @@ class Profile(models.Model):
     bio = models.TextField(max_length=500, blank=True)
     home_city = models.CharField(max_length=100, blank=True)
     travel_preference = models.CharField(max_length=100, blank=True, help_text="e.g. Solo, Couple, Family, Friends")
-    loyalty_points = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -64,7 +63,7 @@ class Profile(models.Model):
             "name": "Flexible Nomad",
             "description": "Adapt timelines in response to travel disruptions.",
             "icon": "⚡",
-            "unlocked": self.loyalty_points >= 80
+            "unlocked": trips_count >= 2
         })
 
         # 4. Memory Maker

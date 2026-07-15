@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useCurrency } from '../context/CurrencyContext';
 import { 
   FaPlane, FaMapMarkerAlt, FaCalendarAlt, FaDollarSign, 
   FaUsers, FaHeart, FaHiking, FaUtensils, FaLandmark, 
@@ -8,12 +9,18 @@ import {
 } from 'react-icons/fa';
 
 const TripPlanner = () => {
+  // Use React hook to redirect users to different pages
   const navigate = useNavigate();
+  // Get active currency details from context provider
+  const { currency, currencySymbol } = useCurrency();
+  // State to track current form step (1 = Destination/Dates, 2 = Budget/Interests)
   const [step, setStep] = useState(1);
+  // State to track if the AI itinerary generation API request is running
   const [loading, setLoading] = useState(false);
+  // State to hold error messages to show on the screen
   const [error, setError] = useState('');
   
-  // Loader message rotations
+  // State to show rotating helpful messages on screen while AI loads
   const [loadingMessage, setLoadingMessage] = useState("Consulting local maps...");
   const loaderMessages = [
     "Consulting local maps...",
@@ -25,6 +32,7 @@ const TripPlanner = () => {
     "Structuring travel tips..."
   ];
 
+  // Rotate helpful loading status messages every 2.5 seconds when loading is true
   useEffect(() => {
     let interval;
     if (loading) {
@@ -37,15 +45,25 @@ const TripPlanner = () => {
     return () => clearInterval(interval);
   }, [loading]);
 
-  // Form states
-  const [destination, setDestination] = useState('');
+  // Read destination keyword from URL params if present, default to empty string
+  const [destination, setDestination] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('destination') || '';
+  });
+  // State to store trip start date
   const [startDate, setStartDate] = useState('');
+  // State to store trip end date
   const [endDate, setEndDate] = useState('');
+  // State to store budget amount (defaults to 1500)
   const [budget, setBudget] = useState('1500');
+  // State to store number of travelers
   const [numTravelers, setNumTravelers] = useState(1);
+  // State to store travel style choice (Solo, Couple, Family, Friends)
   const [travelType, setTravelType] = useState('Solo');
+  // State to store array of selected interest IDs
   const [selectedInterests, setSelectedInterests] = useState([]);
 
+  // List of interests with icons to show as toggle cards on step 2
   const interestsList = [
     { id: 'Adventure', name: 'Adventure', icon: <FaHiking /> },
     { id: 'Food', name: 'Food & Dining', icon: <FaUtensils /> },
@@ -55,6 +73,7 @@ const TripPlanner = () => {
     { id: 'Luxury', name: 'Luxury', icon: <FaCrown /> }
   ];
 
+  // Toggle interest selection by adding or removing it from the selected state array
   const handleInterestToggle = (id) => {
     if (selectedInterests.includes(id)) {
       setSelectedInterests(selectedInterests.filter(item => item !== id));
@@ -63,6 +82,7 @@ const TripPlanner = () => {
     }
   };
 
+  // Helper function to auto-fill form inputs with sample mock options
   const handleAutofill = (dest, startOffset, duration, budgetVal, travelers, type, interests) => {
     const today = new Date();
     const start = new Date(today);
@@ -73,12 +93,19 @@ const TripPlanner = () => {
     setDestination(dest);
     setStartDate(start.toISOString().split('T')[0]);
     setEndDate(end.toISOString().split('T')[0]);
-    setBudget(budgetVal);
+    
+    let finalBudget = budgetVal;
+    if (currency === 'INR') {
+      finalBudget = (parseFloat(budgetVal) * 83).toString();
+    }
+    setBudget(finalBudget);
+    
     setNumTravelers(travelers);
     setTravelType(type);
     setSelectedInterests(interests);
   };
 
+  // Validate step 1 fields before transitioning user to step 2 panel
   const handleNext = () => {
     if (step === 1 && (!destination || !startDate || !endDate)) {
       setError("Please fill out your destination and dates.");
@@ -88,19 +115,24 @@ const TripPlanner = () => {
     setStep(step + 1);
   };
 
+  // Go back to the previous step in the form wizard
   const handleBack = () => {
     setError('');
     setStep(step - 1);
   };
 
+  // Handle final form submit to post trip options and trigger the backend generator
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
+    const numericBudget = parseFloat(budget);
+    const usdBudget = currency === 'INR' ? numericBudget / 83 : numericBudget;
+
     const tripData = {
       destination,
-      budget: parseFloat(budget),
+      budget: usdBudget,
       start_date: startDate,
       end_date: endDate,
       num_travelers: parseInt(numTravelers),
@@ -109,12 +141,36 @@ const TripPlanner = () => {
     };
 
     try {
+      // Send form data to backend django REST API and await the generated trip record
       const response = await api.post('trips/', tripData);
-      // Navigate to full details view
+      // Navigate to the newly generated trip details page using its returned DB ID
       navigate(`/trips/${response.data.id}`);
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.non_field_errors?.[0] || err.message || "Failed to generate itinerary. Please try again.");
+      let errorMsg = "Failed to generate itinerary. Please try again.";
+      if (err.response?.data) {
+        const data = err.response.data;
+        if (typeof data === 'object') {
+          const errorsList = [];
+          for (const key in data) {
+            const msgs = Array.isArray(data[key]) ? data[key].join(', ') : data[key];
+            if (key === 'non_field_errors' || key === 'detail') {
+              errorsList.push(msgs);
+            } else {
+              const fieldName = key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ');
+              errorsList.push(`${fieldName}: ${msgs}`);
+            }
+          }
+          if (errorsList.length > 0) {
+            errorMsg = errorsList.join(' | ');
+          }
+        } else if (typeof data === 'string') {
+          errorMsg = data;
+        }
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+      setError(errorMsg);
       setLoading(false);
     }
   };
@@ -164,7 +220,7 @@ const TripPlanner = () => {
             {step === 1 && (
               <div className="animate-fade-in-up">
                 <div className="mb-3.5 p-3 rounded-4 bg-light border">
-                  <label className="form-label small fw-bold text-dark mb-2">⭐ First Time? Try Quick Autofill</label>
+                  <label className="form-label small fw-bold text-dark mb-2">First Time? Try Quick Autofill</label>
                   <div className="d-flex flex-wrap gap-2">
                     <button 
                       type="button" 
@@ -172,7 +228,7 @@ const TripPlanner = () => {
                       className="btn btn-outline-primary btn-sm py-1.5 px-3 rounded-pill text-xs d-flex align-items-center gap-1"
                       style={{ fontSize: '0.75rem' }}
                     >
-                      🌸 Kyoto (5 Days, Couple)
+                      Kyoto (5 Days, Couple)
                     </button>
                     <button 
                       type="button" 
@@ -180,7 +236,7 @@ const TripPlanner = () => {
                       className="btn btn-outline-primary btn-sm py-1.5 px-3 rounded-pill text-xs d-flex align-items-center gap-1"
                       style={{ fontSize: '0.75rem' }}
                     >
-                      🗼 Paris (4 Days, Solo)
+                      Paris (4 Days, Solo)
                     </button>
                   </div>
                 </div>
@@ -249,10 +305,10 @@ const TripPlanner = () => {
               <div className="animate-fade-in-up">
                 <div className="row g-3 mb-4">
                   <div className="col-sm-6">
-                    <label className="form-label small fw-semibold">Total Budget ($)</label>
+                    <label className="form-label small fw-semibold">Total Budget ({currencySymbol})</label>
                     <div className="input-group">
-                      <span className="input-group-text bg-white text-muted">
-                        <FaDollarSign />
+                      <span className="input-group-text bg-white text-muted fw-bold">
+                        {currencySymbol}
                       </span>
                       <input 
                         type="number" 

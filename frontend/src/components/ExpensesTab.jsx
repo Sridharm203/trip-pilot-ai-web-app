@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { FaDollarSign, FaCalculator, FaChartPie, FaPlus, FaTrash, FaCheck, FaExclamationTriangle, FaRobot } from 'react-icons/fa';
 import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import api from '../services/api';
+import { useCurrency } from '../context/CurrencyContext';
 
 const ExpensesTab = ({ trip, readOnly = false }) => {
+  const { currency, currencySymbol, formatAmount, convertAmount } = useCurrency();
   const [expenses, setExpenses] = useState(trip.expenses || []);
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
@@ -27,16 +29,33 @@ const ExpensesTab = ({ trip, readOnly = false }) => {
 
   const handleAddExpense = async (e) => {
     e.preventDefault();
-    if (!amount || parseFloat(amount) <= 0 || adding) return;
+    const numericAmount = parseFloat(amount);
+    if (!amount || numericAmount <= 0 || adding) return;
 
     setAdding(true);
     try {
+      // Round converted amount to 2 decimal places to prevent DecimalField max_digits overflow
+      const usdAmount = parseFloat((currency === 'INR' ? numericAmount / 83 : numericAmount).toFixed(2));
+      
+      // Ensure date is formatted as YYYY-MM-DD for Django DateField
+      let formattedDate = date;
+      if (date && date.includes('/')) {
+        const parts = date.split('/');
+        if (parts.length === 3) {
+          if (parts[0].length === 4) {
+            formattedDate = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+          } else if (parts[2].length === 4) {
+            formattedDate = `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+          }
+        }
+      }
+
       const response = await api.post('trips/expenses/', {
         trip: trip.id,
         category,
-        amount: parseFloat(amount),
+        amount: usdAmount,
         description,
-        date
+        date: formattedDate
       });
       // Append locally
       setExpenses([response.data, ...expenses]);
@@ -91,7 +110,7 @@ const ExpensesTab = ({ trip, readOnly = false }) => {
   });
   const categoryChartData = Object.keys(categoryDataMap).map(key => ({
     name: key,
-    value: categoryDataMap[key]
+    value: convertAmount(categoryDataMap[key])
   }));
 
   // Chart data 2: Daily trends
@@ -103,7 +122,7 @@ const ExpensesTab = ({ trip, readOnly = false }) => {
     .sort((a, b) => new Date(a) - new Date(b))
     .map(key => ({
       date: key,
-      amount: dailyDataMap[key]
+      amount: convertAmount(dailyDataMap[key])
     }));
 
   return (
@@ -116,20 +135,20 @@ const ExpensesTab = ({ trip, readOnly = false }) => {
         <div className="col-md-4">
           <div className="card border-0 bg-light p-4 rounded-4 shadow-sm h-100">
             <small className="text-muted uppercase fw-bold d-block mb-1">Trip Budget</small>
-            <span className="fs-3 fw-bold text-dark">${totalBudget.toLocaleString()}</span>
+            <span className="fs-3 fw-bold text-dark">{formatAmount(totalBudget)}</span>
           </div>
         </div>
         <div className="col-md-4">
           <div className="card border-0 bg-light p-4 rounded-4 shadow-sm h-100">
             <small className="text-muted uppercase fw-bold d-block mb-1">Total Expenses</small>
-            <span className="fs-3 fw-bold text-primary">${totalSpent.toLocaleString()}</span>
+            <span className="fs-3 fw-bold text-primary">{formatAmount(totalSpent)}</span>
           </div>
         </div>
         <div className="col-md-4">
           <div className={`card border-0 p-4 rounded-4 shadow-sm h-100 ${overBudget ? 'bg-danger-subtle text-danger-emphasis' : 'bg-success-subtle text-success-emphasis'}`}>
             <small className="uppercase fw-bold d-block mb-1">Remaining Balance</small>
             <span className="fs-3 fw-bold">
-              {overBudget ? `-$${Math.abs(remaining).toLocaleString()}` : `$${remaining.toLocaleString()}`}
+              {formatAmount(remaining)}
             </span>
           </div>
         </div>
@@ -147,7 +166,7 @@ const ExpensesTab = ({ trip, readOnly = false }) => {
               </h6>
               <form onSubmit={handleAddExpense} className="row g-3">
                 <div className="col-md-4 col-6">
-                  <label className="form-label small fw-semibold">Amount ($)</label>
+                  <label className="form-label small fw-semibold">Amount ({currencySymbol})</label>
                   <input 
                     type="number" 
                     step="0.01"
@@ -226,7 +245,7 @@ const ExpensesTab = ({ trip, readOnly = false }) => {
                           </span>
                         </td>
                         <td>{exp.description || '—'}</td>
-                        <td className="text-end fw-bold text-dark">${parseFloat(exp.amount).toFixed(2)}</td>
+                        <td className="text-end fw-bold text-dark">{formatAmount(exp.amount, 2)}</td>
                         {!readOnly && (
                           <td className="text-center">
                             <button 
@@ -277,7 +296,7 @@ const ExpensesTab = ({ trip, readOnly = false }) => {
                         <Cell key={`cell-${index}`} fill={COLORS[entry.name] || '#8884d8'} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => `$${value}`} />
+                    <Tooltip formatter={(value) => `${currencySymbol}${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -288,7 +307,7 @@ const ExpensesTab = ({ trip, readOnly = false }) => {
                     <BarChart data={dailyChartData}>
                       <XAxis dataKey="date" tick={{ fontSize: 9 }} />
                       <YAxis tick={{ fontSize: 9 }} />
-                      <Tooltip formatter={(value) => `$${value}`} />
+                      <Tooltip formatter={(value) => `${currencySymbol}${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} />
                       <Bar dataKey="amount" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { FaCloudRain, FaRegTimesCircle, FaBan, FaDollarSign, FaBolt } from 'react-icons/fa';
 import api from '../services/api';
+import { useCurrency } from '../context/CurrencyContext';
 
 const ReplannerModal = ({ trip, onReplanned, onClose }) => {
+  const { currencySymbol } = useCurrency();
   const [disruptionType, setDisruptionType] = useState('heavy_rain');
   const [details, setDetails] = useState('');
   const [loading, setLoading] = useState(false);
@@ -97,9 +99,9 @@ const ReplannerModal = ({ trip, onReplanned, onClose }) => {
                       setDetails('');
                     }}
                   >
-                    <option value="heavy_rain">🌧️ Heavy Rain / Storm</option>
-                    <option value="budget_exceeded">💰 Over Budget Limit</option>
-                    <option value="place_closed">🚫 Attraction Closed</option>
+                    <option value="heavy_rain">Heavy Rain / Storm</option>
+                    <option value="budget_exceeded">Over Budget Limit</option>
+                    <option value="place_closed">Attraction Closed</option>
                   </select>
                 </div>
 
@@ -119,7 +121,7 @@ const ReplannerModal = ({ trip, onReplanned, onClose }) => {
                   <input
                     type="text"
                     className="form-control"
-                    placeholder={disruptionType === 'place_closed' ? "e.g. Eiffel Tower or Louvre Museum" : "e.g. Overspent $150 on shopping"}
+                    placeholder={disruptionType === 'place_closed' ? "e.g. Eiffel Tower or Louvre Museum" : `e.g. Overspent ${currencySymbol}150 on shopping`}
                     value={details}
                     onChange={(e) => setDetails(e.target.value)}
                     required={disruptionType === 'place_closed'}

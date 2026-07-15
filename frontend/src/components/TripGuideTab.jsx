@@ -32,7 +32,7 @@ const TripGuideTab = ({ trip }) => {
 
     try {
       let response;
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem('token');
       if (token) {
         response = await api.post(`trips/${trip.id}/ask-guide/`, {
           query: queryText,

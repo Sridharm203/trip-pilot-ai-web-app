@@ -18,7 +18,7 @@ const CommunityFeed = () => {
   const fetchFeed = async () => {
     try {
       // Feed endpoint is public, we can fetch via axios directly or api
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem('token');
       let response;
       if (token) {
         response = await api.get('trips/feed/');
@@ -34,7 +34,7 @@ const CommunityFeed = () => {
   };
 
   const handleLike = async (tripId) => {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem('token');
     if (!token) {
       alert("Please log in to like this itinerary.");
       navigate('/login');
@@ -59,7 +59,7 @@ const CommunityFeed = () => {
   };
 
   const handleClone = async (tripId) => {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem('token');
     if (!token) {
       alert("Please log in to clone this itinerary.");
       navigate('/login');

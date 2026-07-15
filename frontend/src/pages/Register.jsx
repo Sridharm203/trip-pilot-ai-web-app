@@ -37,7 +37,6 @@ const Register = () => {
     setLoadingLocal(true);
     setLocalError('');
     try {
-      // API call will trigger register then login automatically
       await register(username, email, password, firstName, lastName);
       navigate('/dashboard');
     } catch (err) {
@@ -49,17 +48,17 @@ const Register = () => {
 
   return (
     <div className="container py-5 d-flex align-items-center justify-content-center" style={{ minHeight: '80vh' }}>
-      <div className="card glass-card p-4 p-md-5 w-100 animate-fade-in-up" style={{ maxWidth: '540px' }}>
+      <div className="card glass-card p-4 p-md-5 w-100 animate-fade-in-up" style={{ maxWidth: '520px', background: 'var(--color-card-bg-solid)', borderColor: 'var(--color-border)' }}>
         <div className="text-center mb-4">
-          <div className="bg-info text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 shadow-sm" style={{ width: '56px', height: '56px' }}>
-            <FaPlane className="fs-4" style={{ transform: 'rotate(-45deg)' }} />
+          <div className="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 shadow-sm" style={{ width: '56px', height: '56px', background: 'rgba(79, 70, 229, 0.08)', border: '1px solid rgba(79, 70, 229, 0.15)' }}>
+            <FaPlane className="fs-4" style={{ transform: 'rotate(-45deg)', color: 'var(--color-primary)' }} />
           </div>
-          <h2 className="fw-bold mb-1">Create Account</h2>
+          <h2 className="fw-bold mb-1" style={{ fontSize: '1.75rem', letterSpacing: '-0.02em' }}>Create Account</h2>
           <p className="text-muted small">Begin your journey with your AI co-pilot today</p>
         </div>
 
         {localError && (
-          <div className="alert alert-danger border-0 small py-2 px-3 rounded-3" role="alert">
+          <div className="alert alert-danger border-0 small py-2.5 px-3 rounded-3 mb-4" role="alert">
             {localError}
           </div>
         )}
@@ -67,10 +66,10 @@ const Register = () => {
         <form onSubmit={handleSubmit}>
           <div className="row g-3 mb-3">
             <div className="col-sm-6">
-              <label className="form-label small fw-semibold">First Name</label>
+              <label className="form-label small fw-semibold mb-1.5" style={{ color: 'var(--color-text-muted)' }}>First Name</label>
               <div className="input-group">
-                <span className="input-group-text bg-white border-end-0 text-muted">
-                  <FaAddressCard />
+                <span className="input-group-text border-end-0" style={{ background: 'var(--color-section-bg-2)', borderColor: 'var(--color-border)' }}>
+                  <FaAddressCard style={{ color: 'var(--color-text-muted)', opacity: 0.8 }} />
                 </span>
                 <input
                   type="text"
@@ -79,15 +78,15 @@ const Register = () => {
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   disabled={loadingLocal}
-                  style={{ fontSize: '0.9rem' }}
+                  style={{ fontSize: '0.9rem', background: 'var(--color-section-bg-2)', borderLeft: 'none' }}
                 />
               </div>
             </div>
             <div className="col-sm-6">
-              <label className="form-label small fw-semibold">Last Name</label>
+              <label className="form-label small fw-semibold mb-1.5" style={{ color: 'var(--color-text-muted)' }}>Last Name</label>
               <div className="input-group">
-                <span className="input-group-text bg-white border-end-0 text-muted">
-                  <FaAddressCard />
+                <span className="input-group-text border-end-0" style={{ background: 'var(--color-section-bg-2)', borderColor: 'var(--color-border)' }}>
+                  <FaAddressCard style={{ color: 'var(--color-text-muted)', opacity: 0.8 }} />
                 </span>
                 <input
                   type="text"
@@ -96,17 +95,17 @@ const Register = () => {
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   disabled={loadingLocal}
-                  style={{ fontSize: '0.9rem' }}
+                  style={{ fontSize: '0.9rem', background: 'var(--color-section-bg-2)', borderLeft: 'none' }}
                 />
               </div>
             </div>
           </div>
 
           <div className="mb-3">
-            <label className="form-label small fw-semibold">Username *</label>
+            <label className="form-label small fw-semibold mb-1.5" style={{ color: 'var(--color-text-muted)' }}>Username *</label>
             <div className="input-group">
-              <span className="input-group-text bg-white border-end-0 text-muted">
-                <FaUser />
+              <span className="input-group-text border-end-0" style={{ background: 'var(--color-section-bg-2)', borderColor: 'var(--color-border)' }}>
+                <FaUser style={{ color: 'var(--color-text-muted)', opacity: 0.8 }} />
               </span>
               <input
                 type="text"
@@ -116,16 +115,16 @@ const Register = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 disabled={loadingLocal}
-                style={{ fontSize: '0.9rem' }}
+                style={{ fontSize: '0.9rem', background: 'var(--color-section-bg-2)', borderLeft: 'none' }}
               />
             </div>
           </div>
 
           <div className="mb-3">
-            <label className="form-label small fw-semibold">Email Address *</label>
+            <label className="form-label small fw-semibold mb-1.5" style={{ color: 'var(--color-text-muted)' }}>Email Address *</label>
             <div className="input-group">
-              <span className="input-group-text bg-white border-end-0 text-muted">
-                <FaEnvelope />
+              <span className="input-group-text border-end-0" style={{ background: 'var(--color-section-bg-2)', borderColor: 'var(--color-border)' }}>
+                <FaEnvelope style={{ color: 'var(--color-text-muted)', opacity: 0.8 }} />
               </span>
               <input
                 type="email"
@@ -135,17 +134,17 @@ const Register = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loadingLocal}
-                style={{ fontSize: '0.9rem' }}
+                style={{ fontSize: '0.9rem', background: 'var(--color-section-bg-2)', borderLeft: 'none' }}
               />
             </div>
           </div>
 
           <div className="row g-3 mb-4">
             <div className="col-sm-6">
-              <label className="form-label small fw-semibold">Password *</label>
+              <label className="form-label small fw-semibold mb-1.5" style={{ color: 'var(--color-text-muted)' }}>Password *</label>
               <div className="input-group">
-                <span className="input-group-text bg-white border-end-0 text-muted">
-                  <FaLock />
+                <span className="input-group-text border-end-0" style={{ background: 'var(--color-section-bg-2)', borderColor: 'var(--color-border)' }}>
+                  <FaLock style={{ color: 'var(--color-text-muted)', opacity: 0.8 }} />
                 </span>
                 <input
                   type="password"
@@ -155,15 +154,15 @@ const Register = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={loadingLocal}
-                  style={{ fontSize: '0.9rem' }}
+                  style={{ fontSize: '0.9rem', background: 'var(--color-section-bg-2)', borderLeft: 'none' }}
                 />
               </div>
             </div>
             <div className="col-sm-6">
-              <label className="form-label small fw-semibold">Confirm Password *</label>
+              <label className="form-label small fw-semibold mb-1.5" style={{ color: 'var(--color-text-muted)' }}>Confirm Password *</label>
               <div className="input-group">
-                <span className="input-group-text bg-white border-end-0 text-muted">
-                  <FaLock />
+                <span className="input-group-text border-end-0" style={{ background: 'var(--color-section-bg-2)', borderColor: 'var(--color-border)' }}>
+                  <FaLock style={{ color: 'var(--color-text-muted)', opacity: 0.8 }} />
                 </span>
                 <input
                   type="password"
@@ -173,7 +172,7 @@ const Register = () => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   disabled={loadingLocal}
-                  style={{ fontSize: '0.9rem' }}
+                  style={{ fontSize: '0.9rem', background: 'var(--color-section-bg-2)', borderLeft: 'none' }}
                 />
               </div>
             </div>
@@ -183,6 +182,7 @@ const Register = () => {
             type="submit"
             className="btn btn-primary w-100 py-2.5 d-flex align-items-center justify-content-center gap-2"
             disabled={loadingLocal}
+            style={{ fontSize: '0.95rem', fontWeight: '500', borderRadius: '8px' }}
           >
             {loadingLocal ? (
               <>
@@ -195,9 +195,9 @@ const Register = () => {
           </button>
         </form>
 
-        <div className="text-center mt-4 pt-2 border-top">
+        <div className="text-center mt-4 pt-3 border-top" style={{ borderColor: 'var(--color-border)' }}>
           <p className="small text-muted mb-0">
-            Already have an account? <Link to="/login" className="text-info fw-bold text-decoration-none">Sign In here</Link>
+            Already have an account? <Link to="/login" className="fw-semibold text-decoration-none" style={{ color: 'var(--color-primary)' }}>Sign In here</Link>
           </p>
         </div>
       </div>
