@@ -24,10 +24,8 @@ class Trip(models.Model):
 
     # Sharing UUID Token
     share_token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
-
     is_public = models.BooleanField(default=False)
     likes = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='liked_trips', blank=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
